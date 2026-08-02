@@ -229,6 +229,39 @@ function useNetlist(components, wires) {
 }
 
 // ---------------------------------------------------------------------------
+// Minimal inline waveform plotter for transient/AC/DC-sweep results.
+// ---------------------------------------------------------------------------
+const PLOT_COLORS = ["#5EEAD4", "#FBBF24", "#F87171", "#93C5FD", "#C4B5FD", "#FDA4AF"];
+
+function WaveformPlot({ x, series }) {
+  if (!x || !x.length || !series || !series.length) return null;
+  const w = 276, h = 160, pad = 30;
+  const xmin = Math.min(...x), xmax = Math.max(...x);
+  const allVals = series.flatMap((s) => s.values);
+  const ymin = Math.min(...allVals), ymax = Math.max(...allVals);
+  const xr = xmax - xmin || 1, yr = ymax - ymin || 1;
+  const sx = (v) => pad + ((v - xmin) / xr) * (w - pad - 10);
+  const sy = (v) => h - pad - ((v - ymin) / yr) * (h - pad - 10);
+  return (
+    <svg width={w} height={h} style={{ background: "#0E141B", borderRadius: 6 }}>
+      <line x1={pad} y1={h - pad} x2={w - 10} y2={h - pad} stroke="#232C38" />
+      <line x1={pad} y1={10} x2={pad} y2={h - pad} stroke="#232C38" />
+      <text x={pad} y={h - 10} fontSize="9" fill="#7C8A9A">{xmin.toExponential(1)}</text>
+      <text x={w - 40} y={h - 10} fontSize="9" fill="#7C8A9A">{xmax.toExponential(1)}</text>
+      {series.map((s, i) => (
+        <polyline
+          key={s.name}
+          fill="none"
+          stroke={PLOT_COLORS[i % PLOT_COLORS.length]}
+          strokeWidth="1.5"
+          points={x.map((xv, idx) => `${sx(xv)},${sy(s.values[idx])}`).join(" ")}
+        />
+      ))}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main editor
 // ---------------------------------------------------------------------------
 export default function SchematicEditor() {
@@ -242,8 +275,47 @@ export default function SchematicEditor() {
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 1000, h: 640 });
   const svgRef = useRef(null);
 
+  // --- Simulation ---
+  const [rightTab, setRightTab] = useState("netlist"); // 'netlist' | 'simulate'
+  const [analysisType, setAnalysisType] = useState("op");
+  const [tranStep, setTranStep] = useState("10u");
+  const [tranStop, setTranStop] = useState("1m");
+  const [simLoading, setSimLoading] = useState(false);
+  const [simError, setSimError] = useState(null);
+  const [simResult, setSimResult] = useState(null);
+
+  const SIM_API_URL = (import.meta.env.VITE_SIM_API_URL || "").replace(/\/$/, "");
+
   const netlist = useNetlist(components, wires);
   const selected = components.find((c) => c.id === selectedId) || null;
+
+  async function runSimulation() {
+    setSimLoading(true);
+    setSimError(null);
+    setSimResult(null);
+    try {
+      if (!SIM_API_URL) {
+        throw new Error("Simulation backend not configured — set VITE_SIM_API_URL");
+      }
+      const analysis =
+        analysisType === "op"
+          ? { type: "op" }
+          : { type: "tran", params: { step: tranStep, stop: tranStop, start: "0" } };
+
+      const resp = await fetch(`${SIM_API_URL}/api/simulate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ netlist, analysis }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) throw new Error(data.error || `Simulation failed (HTTP ${resp.status})`);
+      setSimResult(data);
+    } catch (err) {
+      setSimError(err.message);
+    } finally {
+      setSimLoading(false);
+    }
+  }
 
   const toSvgCoords = useCallback((evt) => {
     const svg = svgRef.current;
@@ -550,19 +622,148 @@ export default function SchematicEditor() {
             )}
           </div>
 
-          <div style={{ padding: "10px 12px 4px", fontSize: 11, color: col.dim, textTransform: "uppercase", letterSpacing: 0.5 }}>
-            Netlist (live)
+          {/* Tabs */}
+          <div style={{ display: "flex", borderBottom: `1px solid ${col.border}` }}>
+            {[
+              { id: "netlist", label: "Netlist" },
+              { id: "simulate", label: "Simulate" },
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setRightTab(t.id)}
+                style={{
+                  flex: 1, padding: "8px 0", fontSize: 12, fontFamily: sans, cursor: "pointer",
+                  background: "transparent", border: "none",
+                  borderBottom: `2px solid ${rightTab === t.id ? col.teal : "transparent"}`,
+                  color: rightTab === t.id ? col.text : col.dim,
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-          <pre
-            style={{
-              flex: 1, margin: 0, padding: "8px 12px 16px", overflow: "auto",
-              fontFamily: mono, fontSize: 12, lineHeight: 1.6, color: "#8FE3B0",
-              background: col.panel2, whiteSpace: "pre-wrap", wordBreak: "break-word",
-            }}
-          >
-            {netlist}
-            <span style={{ animation: "blink 1s step-start infinite" }}>▋</span>
-          </pre>
+
+          {rightTab === "netlist" && (
+            <pre
+              style={{
+                flex: 1, margin: 0, padding: "8px 12px 16px", overflow: "auto",
+                fontFamily: mono, fontSize: 12, lineHeight: 1.6, color: "#8FE3B0",
+                background: col.panel2, whiteSpace: "pre-wrap", wordBreak: "break-word",
+              }}
+            >
+              {netlist}
+              <span style={{ animation: "blink 1s step-start infinite" }}>▋</span>
+            </pre>
+          )}
+
+          {rightTab === "simulate" && (
+            <div style={{ flex: 1, overflow: "auto", padding: 12 }}>
+              <label style={{ fontSize: 12, color: col.dim, display: "block", marginBottom: 8 }}>
+                Analysis Type
+                <select
+                  value={analysisType}
+                  onChange={(e) => setAnalysisType(e.target.value)}
+                  style={{
+                    display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                    background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                    color: col.text, fontSize: 13,
+                  }}
+                >
+                  <option value="op">Operating Point (DC)</option>
+                  <option value="tran">Transient</option>
+                </select>
+              </label>
+
+              {analysisType === "tran" && (
+                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, color: col.dim, flex: 1 }}>
+                    Step
+                    <input
+                      value={tranStep}
+                      onChange={(e) => setTranStep(e.target.value)}
+                      style={{
+                        display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                        background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                        color: col.text, fontFamily: mono, fontSize: 13,
+                      }}
+                    />
+                  </label>
+                  <label style={{ fontSize: 12, color: col.dim, flex: 1 }}>
+                    Stop
+                    <input
+                      value={tranStop}
+                      onChange={(e) => setTranStop(e.target.value)}
+                      style={{
+                        display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                        background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                        color: col.text, fontFamily: mono, fontSize: 13,
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              <button
+                onClick={runSimulation}
+                disabled={simLoading || components.length === 0}
+                style={{
+                  width: "100%", padding: "8px 0", fontSize: 13, fontFamily: sans, borderRadius: 6,
+                  cursor: simLoading ? "default" : "pointer",
+                  border: `1px solid ${col.teal}`, background: "rgba(94,234,212,0.10)", color: col.teal,
+                  opacity: simLoading || components.length === 0 ? 0.5 : 1,
+                }}
+              >
+                {simLoading ? "Running…" : "Run Simulation"}
+              </button>
+
+              {!SIM_API_URL && (
+                <div style={{ marginTop: 10, fontSize: 11, color: col.dim }}>
+                  Set the <code>VITE_SIM_API_URL</code> env var to your Railway backend URL to enable this.
+                </div>
+              )}
+
+              {simError && (
+                <div style={{ marginTop: 10, fontSize: 12, color: col.danger }}>⚠ {simError}</div>
+              )}
+
+              {simResult && simResult.type === "op" && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 11, color: col.dim, textTransform: "uppercase", marginBottom: 6 }}>
+                    Node Voltages
+                  </div>
+                  <table style={{ width: "100%", fontSize: 12, fontFamily: mono, borderCollapse: "collapse" }}>
+                    <tbody>
+                      {Object.entries(simResult.nodeVoltages).map(([k, v]) => (
+                        <tr key={k} style={{ borderBottom: `1px solid ${col.border}` }}>
+                          <td style={{ padding: "4px 0", color: col.dim }}>{k}</td>
+                          <td style={{ padding: "4px 0", textAlign: "right", color: "#8FE3B0" }}>
+                            {Number(v).toFixed(4)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {simResult && simResult.type !== "op" && simResult.x && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 11, color: col.dim, textTransform: "uppercase", marginBottom: 6 }}>
+                    Waveform
+                  </div>
+                  <WaveformPlot x={simResult.x} series={simResult.series} />
+                  <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 10 }}>
+                    {simResult.series.map((s, i) => (
+                      <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: col.dim }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 99, background: PLOT_COLORS[i % PLOT_COLORS.length] }} />
+                        {s.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <style>{`@keyframes blink { 50% { opacity: 0; } }`}</style>
