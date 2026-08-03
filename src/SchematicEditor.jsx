@@ -15,6 +15,23 @@ const MOS_PINS = [
   { id: "s", dx: 0, dy: 40 },
 ];
 
+const GATE2_PINS = [
+  { id: "a", dx: -40, dy: -15 },
+  { id: "b", dx: -40, dy: 15 },
+  { id: "y", dx: 40, dy: 0 },
+];
+const GATE1_PINS = [
+  { id: "a", dx: -40, dy: 0 },
+  { id: "y", dx: 40, dy: 0 },
+];
+const DFF_PINS = [
+  { id: "d", dx: -40, dy: -15 },
+  { id: "clk", dx: -40, dy: 15 },
+  { id: "q", dx: 40, dy: -15 },
+  { id: "qn", dx: 40, dy: 15 },
+];
+const PORT_PIN = [{ id: "a", dx: -30, dy: 0 }];
+
 const DEFS = {
   resistor: { label: "Resistor", prefix: "R", pins: TWO_PIN, hasValue: true, defaultValue: "1k", unit: "Ω" },
   capacitor: { label: "Capacitor", prefix: "C", pins: TWO_PIN, hasValue: true, defaultValue: "1u", unit: "F" },
@@ -25,8 +42,18 @@ const DEFS = {
   ground: { label: "Ground", prefix: "GND", pins: GND_PIN, hasValue: false, defaultValue: "", unit: "" },
   nmos: { label: "NMOS", prefix: "M", pins: MOS_PINS, hasValue: false, defaultValue: "", unit: "" },
   pmos: { label: "PMOS", prefix: "M", pins: MOS_PINS, hasValue: false, defaultValue: "", unit: "" },
+  and2: { label: "AND", prefix: "U", pins: GATE2_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "and" },
+  or2: { label: "OR", prefix: "U", pins: GATE2_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "or" },
+  not1: { label: "NOT", prefix: "U", pins: GATE1_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "not" },
+  nand2: { label: "NAND", prefix: "U", pins: GATE2_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "nand" },
+  nor2: { label: "NOR", prefix: "U", pins: GATE2_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "nor" },
+  xor2: { label: "XOR", prefix: "U", pins: GATE2_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "xor" },
+  dff: { label: "D Flip-Flop", prefix: "U", pins: DFF_PINS, hasValue: false, defaultValue: "", unit: "", digital: true, gateType: "dff" },
+  input_port: { label: "Input Port", prefix: "IN", pins: PORT_PIN, hasValue: true, defaultValue: "in1", unit: "", digital: true, port: "input" },
+  output_port: { label: "Output Port", prefix: "OUT", pins: PORT_PIN, hasValue: true, defaultValue: "out1", unit: "", digital: true, port: "output" },
 };
 const PALETTE = ["resistor", "capacitor", "inductor", "diode", "vsource", "isource", "ground", "nmos", "pmos"];
+const DIGITAL_PALETTE = ["and2", "or2", "not1", "nand2", "nor2", "xor2", "dff", "input_port", "output_port"];
 
 // ---------------------------------------------------------------------------
 // Schematic symbol glyphs — reused at full size on canvas and shrunk in the palette.
@@ -113,6 +140,91 @@ function Symbol({ type }) {
           ) : (
             <polygon points="-14,-14 -6,-10 -6,-18" fill="currentColor" />
           )}
+        </g>
+      );
+    case "and2":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -20 L 0 -20 A 20 20 0 0 1 0 20 L -30 20 Z" />
+          <line x1="-40" y1="-15" x2="-30" y2="-15" />
+          <line x1="-40" y1="15" x2="-30" y2="15" />
+          <line x1="20" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "or2":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -20 Q -10 0 -30 20 Q 5 20 20 0 Q 5 -20 -30 -20 Z" />
+          <line x1="-40" y1="-15" x2="-26" y2="-15" />
+          <line x1="-40" y1="15" x2="-26" y2="15" />
+          <line x1="20" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "xor2":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -34 -20 Q -14 0 -34 20 Q 1 20 16 0 Q 1 -20 -34 -20 Z" />
+          <path d="M -38 -20 Q -22 0 -38 20" />
+          <line x1="-40" y1="-15" x2="-30" y2="-15" />
+          <line x1="-40" y1="15" x2="-30" y2="15" />
+          <line x1="16" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "not1":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -20 L 20 0 L -30 20 Z" />
+          <circle cx="25" cy="0" r="5" />
+          <line x1="-40" y1="0" x2="-30" y2="0" />
+          <line x1="30" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "nand2":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -20 L 0 -20 A 20 20 0 0 1 0 20 L -30 20 Z" />
+          <circle cx="25" cy="0" r="5" />
+          <line x1="-40" y1="-15" x2="-30" y2="-15" />
+          <line x1="-40" y1="15" x2="-30" y2="15" />
+          <line x1="30" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "nor2":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -20 Q -10 0 -30 20 Q 5 20 20 0 Q 5 -20 -30 -20 Z" />
+          <circle cx="25" cy="0" r="5" />
+          <line x1="-40" y1="-15" x2="-26" y2="-15" />
+          <line x1="-40" y1="15" x2="-26" y2="15" />
+          <line x1="30" y1="0" x2="40" y2="0" />
+        </g>
+      );
+    case "dff":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <rect x="-30" y="-25" width="60" height="50" />
+          <text x="-22" y="-11" fontSize="11" fill="currentColor" stroke="none">D</text>
+          <text x="14" y="-11" fontSize="11" fill="currentColor" stroke="none">Q</text>
+          <text x="10" y="19" fontSize="9" fill="currentColor" stroke="none">Qn</text>
+          <path d="M -30 11 L -24 15 L -30 19" />
+          <line x1="-40" y1="-15" x2="-30" y2="-15" />
+          <line x1="-40" y1="15" x2="-30" y2="15" />
+          <line x1="30" y1="-15" x2="40" y2="-15" />
+          <line x1="30" y1="15" x2="40" y2="15" />
+        </g>
+      );
+    case "input_port":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 -12 L 10 -12 L 20 0 L 10 12 L -30 12 Z" />
+          <line x1="20" y1="0" x2="30" y2="0" />
+        </g>
+      );
+    case "output_port":
+      return (
+        <g style={{ stroke: "currentColor", strokeWidth: 2, fill: "none" }}>
+          <path d="M -30 0 L -20 -12 L 20 -12 L 20 12 L -20 12 Z" />
+          <line x1="-40" y1="0" x2="-30" y2="0" />
         </g>
       );
     default:
@@ -224,13 +336,129 @@ function useNetlist(components, wires) {
 
     const header = "* Schematic netlist — generated by EDA Teaching Tool\n";
     const models = usesMos ? ".model NMOS NMOS (LEVEL=1)\n.model PMOS PMOS (LEVEL=1)\n" : "";
-    return header + lines.join("\n") + (lines.length ? "\n" : "") + models + ".end";
+    const code = header + lines.join("\n") + (lines.length ? "\n" : "") + models + ".end";
+    return { code, getPinNode };
   }, [components, wires]);
 }
 
 // ---------------------------------------------------------------------------
-// Minimal inline waveform plotter for transient/AC/DC-sweep results.
+// Digital netlist -> structural Verilog. Uses Verilog's built-in gate
+// primitives (and/or/not/nand/nor/xor) for combinational gates, and a small
+// always block for the D flip-flop (Verilog has no built-in DFF primitive).
+// Only considers components flagged `digital: true` in DEFS, and only wires
+// between two digital components' pins — analog parts are ignored here the
+// same way digital parts are ignored by the SPICE netlist generator above.
 // ---------------------------------------------------------------------------
+function useVerilogNetlist(components, wires) {
+  return useMemo(() => {
+    const digitalComps = components.filter((c) => DEFS[c.type].digital && DEFS[c.type].gateType);
+    const portComps = components.filter((c) => DEFS[c.type].port);
+    const digitalIds = new Set([...digitalComps, ...portComps].map((c) => c.id));
+    if (digitalComps.length === 0) return { code: "", hasDigital: false };
+
+    const parent = {};
+    const key = (compId, pinId) => `${compId}:${pinId}`;
+    const find = (k) => {
+      if (!(k in parent)) parent[k] = k;
+      while (parent[k] !== k) {
+        parent[k] = parent[parent[k]];
+        k = parent[k];
+      }
+      return k;
+    };
+    const union = (a, b) => {
+      const ra = find(a), rb = find(b);
+      if (ra !== rb) parent[ra] = rb;
+    };
+
+    const relevantComps = components.filter((c) => digitalIds.has(c.id));
+    relevantComps.forEach((c) => pinsOf(c).forEach((p) => find(key(c.id, p.id))));
+    wires.forEach((w) => {
+      if (digitalIds.has(w.from.compId) && digitalIds.has(w.to.compId)) {
+        union(key(w.from.compId, w.from.pinId), key(w.to.compId, w.to.pinId));
+      }
+    });
+    // coincident pins auto-connect, same as the SPICE netlist generator
+    const posMap = {};
+    relevantComps.forEach((c) =>
+      pinsOf(c).forEach((p) => {
+        const abs = absPin(c, p);
+        const pk = `${Math.round(abs.x)},${Math.round(abs.y)}`;
+        const k = key(c.id, p.id);
+        if (posMap[pk]) union(posMap[pk], k);
+        else posMap[pk] = k;
+      })
+    );
+
+    // Name each net: prefer a port's declared name, else auto w1, w2, ...
+    const rootMeta = {}; // root -> { name, isInput, isOutput }
+    portComps.forEach((c) => {
+      const r = find(key(c.id, "a"));
+      const isInput = DEFS[c.type].port === "input";
+      rootMeta[r] = { name: c.value || (isInput ? "in" : "out"), isInput, isOutput: !isInput };
+    });
+    let wCounter = 1;
+    const nameForRoot = (r) => {
+      if (rootMeta[r]) return rootMeta[r].name;
+      rootMeta[r] = { name: `w${wCounter++}`, isInput: false, isOutput: false };
+      return rootMeta[r].name;
+    };
+    const netOf = (compId, pinId) => nameForRoot(find(key(compId, pinId)));
+
+    // Which nets are driven by the DFF's always block (need `reg`, not `wire`)
+    const regNets = new Set();
+    digitalComps.forEach((c) => {
+      if (DEFS[c.type].gateType === "dff") {
+        regNets.add(netOf(c.id, "q"));
+        regNets.add(netOf(c.id, "qn"));
+      }
+    });
+
+    const inputs = [], outputs = [], internalNets = [];
+    Object.values(rootMeta).forEach((m) => {
+      if (m.isInput) inputs.push(m.name);
+      else if (m.isOutput) outputs.push(m.name);
+      else internalNets.push(m.name);
+    });
+    // also make sure every net touched by a gate got materialized even if not yet in rootMeta iteration order
+    digitalComps.forEach((c) => pinsOf(c).forEach((p) => netOf(c.id, p.id)));
+    Object.values(rootMeta).forEach((m) => {
+      if (!m.isInput && !m.isOutput && !internalNets.includes(m.name)) internalNets.push(m.name);
+    });
+
+    const gateCounters = {};
+    const gateLines = [];
+    const dffLines = [];
+    digitalComps.forEach((c) => {
+      const def = DEFS[c.type];
+      gateCounters[c.type] = (gateCounters[c.type] || 0) + 1;
+      const inst = c.label || `${def.prefix}${gateCounters[c.type]}`;
+      if (def.gateType === "dff") {
+        const d = netOf(c.id, "d"), clk = netOf(c.id, "clk"), q = netOf(c.id, "q"), qn = netOf(c.id, "qn");
+        dffLines.push(`  always @(posedge ${clk}) begin\n    ${q} <= ${d};\n    ${qn} <= ~${d};\n  end`);
+      } else if (def.gateType === "not") {
+        const a = netOf(c.id, "a"), y = netOf(c.id, "y");
+        gateLines.push(`  not ${inst} (${y}, ${a});`);
+      } else {
+        const a = netOf(c.id, "a"), b = netOf(c.id, "b"), y = netOf(c.id, "y");
+        gateLines.push(`  ${def.gateType} ${inst} (${y}, ${a}, ${b});`);
+      }
+    });
+
+    const portList = [...inputs, ...outputs].join(", ");
+    const lines = [];
+    lines.push(`module schematic_circuit(${portList});`);
+    inputs.forEach((n) => lines.push(`  input ${n};`));
+    outputs.forEach((n) => lines.push(`  output ${regNets.has(n) ? "reg " : ""}${n};`));
+    internalNets.forEach((n) => lines.push(`  ${regNets.has(n) ? "reg" : "wire"} ${n};`));
+    lines.push("");
+    lines.push(...gateLines);
+    if (dffLines.length) lines.push(...dffLines);
+    lines.push("endmodule");
+
+    return { code: lines.join("\n"), hasDigital: true };
+  }, [components, wires]);
+}
 const PLOT_COLORS = ["#5EEAD4", "#FBBF24", "#F87171", "#93C5FD", "#C4B5FD", "#FDA4AF"];
 
 function WaveformPlot({ x, series }) {
@@ -264,7 +492,7 @@ function WaveformPlot({ x, series }) {
 // ---------------------------------------------------------------------------
 // Main editor
 // ---------------------------------------------------------------------------
-export default function SchematicEditor() {
+export default function SchematicEditor({ onSendToHDL } = {}) {
   const [components, setComponents] = useState([]);
   const [wires, setWires] = useState([]);
   const [tool, setTool] = useState("select"); // 'select' | 'wire' | 'place'
@@ -276,7 +504,7 @@ export default function SchematicEditor() {
   const svgRef = useRef(null);
 
   // --- Simulation ---
-  const [rightTab, setRightTab] = useState("netlist"); // 'netlist' | 'simulate'
+  const [rightTab, setRightTab] = useState("netlist"); // 'netlist' | 'simulate' | 'hdl' | 'import'
   const [analysisType, setAnalysisType] = useState("op");
   const [tranStep, setTranStep] = useState("10u");
   const [tranStop, setTranStop] = useState("1m");
@@ -284,31 +512,109 @@ export default function SchematicEditor() {
   const [simError, setSimError] = useState(null);
   const [simResult, setSimResult] = useState(null);
 
+  // --- Xschem import (alternative entry point) ---
+  const [importFileName, setImportFileName] = useState(null);
+  const [importNetlist, setImportNetlist] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState(null);
+  const [importAnalysisType, setImportAnalysisType] = useState("op");
+  const [importTranStep, setImportTranStep] = useState("10u");
+  const [importTranStop, setImportTranStop] = useState("1m");
+  const [importSimLoading, setImportSimLoading] = useState(false);
+  const [importSimError, setImportSimError] = useState(null);
+  const [importSimResult, setImportSimResult] = useState(null);
+
   const SIM_API_URL = (import.meta.env.VITE_SIM_API_URL || "").replace(/\/$/, "");
+  const XSCHEM_API_URL = (import.meta.env.VITE_XSCHEM_API_URL || "").replace(/\/$/, "");
 
   const netlist = useNetlist(components, wires);
+  const verilog = useVerilogNetlist(components, wires);
   const selected = components.find((c) => c.id === selectedId) || null;
+
+  const nodeVoltageLabels = useMemo(() => {
+    if (!simResult || simResult.type !== "op" || !simResult.nodeVoltages) return [];
+    const seen = new Set();
+    const labels = [];
+    components.forEach((c) => {
+      pinsOf(c).forEach((p) => {
+        const node = netlist.getPinNode(c.id, p.id);
+        if (seen.has(node)) return;
+        const voltage = node === "0" ? 0 : simResult.nodeVoltages[node];
+        if (voltage === undefined) return; // e.g. a digital-only net, not part of the SPICE netlist
+        seen.add(node);
+        const abs = absPin(c, p);
+        labels.push({ x: abs.x, y: abs.y, node, voltage });
+      });
+    });
+    return labels;
+  }, [components, simResult, netlist]);
+
+  // Shared by both the canvas-drawn netlist and the Xschem-imported netlist.
+  async function simulateNetlist(netlistCode, analysis) {
+    if (!SIM_API_URL) throw new Error("Simulation backend not configured — set VITE_SIM_API_URL");
+    const resp = await fetch(`${SIM_API_URL}/api/simulate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ netlist: netlistCode, analysis }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) throw new Error(data.error || `Simulation failed (HTTP ${resp.status})`);
+    return data;
+  }
+
+  async function handleXschemUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportError(null);
+    setImportNetlist(null);
+    setImportSimResult(null);
+    setImportLoading(true);
+    try {
+      if (!XSCHEM_API_URL) throw new Error("Xschem backend not configured — set VITE_XSCHEM_API_URL");
+      const formData = new FormData();
+      formData.append("schematic", file);
+      const resp = await fetch(`${XSCHEM_API_URL}/api/netlist-from-xschem`, { method: "POST", body: formData });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) throw new Error(data.error || `Conversion failed (HTTP ${resp.status})`);
+      setImportNetlist(data.netlist);
+    } catch (err) {
+      setImportError(err.message);
+    } finally {
+      setImportLoading(false);
+    }
+    e.target.value = ""; // allow re-uploading the same filename later
+  }
+
+  async function runImportedSimulation() {
+    if (!importNetlist) return;
+    setImportSimLoading(true);
+    setImportSimError(null);
+    setImportSimResult(null);
+    try {
+      const analysis =
+        importAnalysisType === "op"
+          ? { type: "op" }
+          : { type: "tran", params: { step: importTranStep, stop: importTranStop, start: "0" } };
+      const data = await simulateNetlist(importNetlist, analysis);
+      setImportSimResult(data);
+    } catch (err) {
+      setImportSimError(err.message);
+    } finally {
+      setImportSimLoading(false);
+    }
+  }
 
   async function runSimulation() {
     setSimLoading(true);
     setSimError(null);
     setSimResult(null);
     try {
-      if (!SIM_API_URL) {
-        throw new Error("Simulation backend not configured — set VITE_SIM_API_URL");
-      }
       const analysis =
         analysisType === "op"
           ? { type: "op" }
           : { type: "tran", params: { step: tranStep, stop: tranStop, start: "0" } };
-
-      const resp = await fetch(`${SIM_API_URL}/api/simulate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ netlist, analysis }),
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.ok) throw new Error(data.error || `Simulation failed (HTTP ${resp.status})`);
+      const data = await simulateNetlist(netlist.code, analysis);
       setSimResult(data);
     } catch (err) {
       setSimError(err.message);
@@ -449,7 +755,7 @@ export default function SchematicEditor() {
   }
 
   return (
-    <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: col.bg, color: col.text, fontFamily: sans }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: col.bg, color: col.text, fontFamily: sans }}>
       {/* Header / toolbar */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: `1px solid ${col.border}`, background: col.panel, flexWrap: "wrap" }}>
         <div style={{ fontWeight: 600, fontSize: 14, marginRight: 10 }}>
@@ -483,6 +789,26 @@ export default function SchematicEditor() {
               }}
             >
               <svg viewBox="-45 -45 90 90" width="30" height="30" style={{ color: col.teal, flexShrink: 0 }}>
+                <Symbol type={type} />
+              </svg>
+              <span style={{ fontSize: 12 }}>{DEFS[type].label}</span>
+            </button>
+          ))}
+
+          <div style={{ fontSize: 11, color: col.dim, margin: "16px 0 8px", textTransform: "uppercase", letterSpacing: 0.5 }}>Logic Gates</div>
+          {DIGITAL_PALETTE.map((type) => (
+            <button
+              key={type}
+              onClick={() => { setTool("place"); setPlaceType(type); }}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, width: "100%", marginBottom: 6,
+                padding: "6px 8px", borderRadius: 6, cursor: "pointer",
+                border: `1px solid ${tool === "place" && placeType === type ? col.amber : col.border}`,
+                background: tool === "place" && placeType === type ? "rgba(251,191,36,0.10)" : col.panel2,
+                color: col.text,
+              }}
+            >
+              <svg viewBox="-45 -45 90 90" width="30" height="30" style={{ color: col.amber, flexShrink: 0 }}>
                 <Symbol type={type} />
               </svg>
               <span style={{ fontSize: 12 }}>{DEFS[type].label}</span>
@@ -587,6 +913,16 @@ export default function SchematicEditor() {
                 </g>
               );
             })}
+
+            {/* On-canvas node voltage overlay, shown after an op-point simulation */}
+            {simResult && simResult.type === "op" && nodeVoltageLabels.map((lbl, i) => (
+              <g key={i}>
+                <rect x={lbl.x + 6} y={lbl.y - 16} width={46} height={14} rx={3} fill={col.panel2} stroke={col.amber} strokeWidth="1" />
+                <text x={lbl.x + 9} y={lbl.y - 6} fontSize="9" fill={col.amber} fontFamily={mono}>
+                  {Number(lbl.voltage).toFixed(2)}V
+                </text>
+              </g>
+            ))}
           </svg>
         </div>
 
@@ -627,6 +963,8 @@ export default function SchematicEditor() {
             {[
               { id: "netlist", label: "Netlist" },
               { id: "simulate", label: "Simulate" },
+              { id: "hdl", label: "HDL" },
+              { id: "import", label: "Import" },
             ].map((t) => (
               <button
                 key={t.id}
@@ -651,9 +989,188 @@ export default function SchematicEditor() {
                 background: col.panel2, whiteSpace: "pre-wrap", wordBreak: "break-word",
               }}
             >
-              {netlist}
+              {netlist.code}
               <span style={{ animation: "blink 1s step-start infinite" }}>▋</span>
             </pre>
+          )}
+
+          {rightTab === "hdl" && (
+            <div style={{ flex: 1, overflow: "auto", padding: 12 }}>
+              {!verilog.hasDigital ? (
+                <div style={{ fontSize: 12, color: col.dim }}>
+                  Place logic gates (and at least one Input/Output Port) to generate Verilog here.
+                </div>
+              ) : (
+                <>
+                  <pre
+                    style={{
+                      margin: 0, padding: 12, fontFamily: mono, fontSize: 12, lineHeight: 1.6,
+                      color: "#8FE3B0", background: col.panel2, borderRadius: 6,
+                      whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: 320, overflow: "auto",
+                    }}
+                  >
+                    {verilog.code}
+                  </pre>
+                  {onSendToHDL && (
+                    <button
+                      onClick={() => onSendToHDL(verilog.code)}
+                      style={{
+                        marginTop: 10, width: "100%", padding: "8px 0", fontSize: 13, fontFamily: sans,
+                        borderRadius: 6, cursor: "pointer", border: `1px solid ${col.teal}`,
+                        background: "rgba(94,234,212,0.10)", color: col.teal,
+                      }}
+                    >
+                      Send to HDL Editor
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {rightTab === "import" && (
+            <div style={{ flex: 1, overflow: "auto", padding: 12 }}>
+              <div style={{ fontSize: 11, color: col.dim, lineHeight: 1.5, marginBottom: 10 }}>
+                Alternative entry point: design in real <b style={{ color: col.text }}>Xschem</b> locally (free,
+                more powerful than this canvas for advanced work), then upload the <code>.sch</code> file here to
+                convert it to a netlist and simulate it — no need to redraw it on this canvas.
+              </div>
+
+              <label
+                style={{
+                  display: "block", padding: "10px 12px", borderRadius: 6, textAlign: "center",
+                  border: `1px dashed ${col.border}`, background: col.panel2, color: col.dim,
+                  fontSize: 12, cursor: "pointer", marginBottom: 10,
+                }}
+              >
+                {importFileName ? `📄 ${importFileName}` : "Click to choose a .sch file"}
+                <input type="file" accept=".sch" onChange={handleXschemUpload} style={{ display: "none" }} />
+              </label>
+
+              {!XSCHEM_API_URL && (
+                <div style={{ fontSize: 11, color: col.dim, marginBottom: 10 }}>
+                  Set <code>VITE_XSCHEM_API_URL</code> to your Xschem backend URL to enable this.
+                </div>
+              )}
+              {importLoading && <div style={{ fontSize: 12, color: col.dim }}>Converting…</div>}
+              {importError && <div style={{ fontSize: 12, color: col.danger, marginBottom: 10 }}>⚠ {importError}</div>}
+
+              {importNetlist && (
+                <>
+                  <div style={{ fontSize: 11, color: col.dim, textTransform: "uppercase", marginBottom: 6 }}>
+                    Converted Netlist
+                  </div>
+                  <pre
+                    style={{
+                      margin: 0, padding: 10, fontFamily: mono, fontSize: 11, lineHeight: 1.5,
+                      color: "#8FE3B0", background: col.panel2, borderRadius: 6,
+                      whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: 160, overflow: "auto",
+                    }}
+                  >
+                    {importNetlist}
+                  </pre>
+
+                  <label style={{ fontSize: 12, color: col.dim, display: "block", marginTop: 12, marginBottom: 8 }}>
+                    Analysis Type
+                    <select
+                      value={importAnalysisType}
+                      onChange={(e) => setImportAnalysisType(e.target.value)}
+                      style={{
+                        display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                        background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                        color: col.text, fontSize: 13,
+                      }}
+                    >
+                      <option value="op">Operating Point (DC)</option>
+                      <option value="tran">Transient</option>
+                    </select>
+                  </label>
+
+                  {importAnalysisType === "tran" && (
+                    <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                      <label style={{ fontSize: 12, color: col.dim, flex: 1 }}>
+                        Step
+                        <input
+                          value={importTranStep}
+                          onChange={(e) => setImportTranStep(e.target.value)}
+                          style={{
+                            display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                            background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                            color: col.text, fontFamily: mono, fontSize: 13,
+                          }}
+                        />
+                      </label>
+                      <label style={{ fontSize: 12, color: col.dim, flex: 1 }}>
+                        Stop
+                        <input
+                          value={importTranStop}
+                          onChange={(e) => setImportTranStop(e.target.value)}
+                          style={{
+                            display: "block", width: "100%", marginTop: 4, padding: "6px 8px",
+                            background: col.panel2, border: `1px solid ${col.border}`, borderRadius: 6,
+                            color: col.text, fontFamily: mono, fontSize: 13,
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={runImportedSimulation}
+                    disabled={importSimLoading}
+                    style={{
+                      width: "100%", padding: "8px 0", fontSize: 13, fontFamily: sans, borderRadius: 6,
+                      cursor: importSimLoading ? "default" : "pointer",
+                      border: `1px solid ${col.teal}`, background: "rgba(94,234,212,0.10)", color: col.teal,
+                      opacity: importSimLoading ? 0.5 : 1,
+                    }}
+                  >
+                    {importSimLoading ? "Running…" : "Run Simulation"}
+                  </button>
+
+                  {importSimError && (
+                    <div style={{ marginTop: 10, fontSize: 12, color: col.danger }}>⚠ {importSimError}</div>
+                  )}
+
+                  {importSimResult && importSimResult.type === "op" && (
+                    <div style={{ marginTop: 14 }}>
+                      <div style={{ fontSize: 11, color: col.dim, textTransform: "uppercase", marginBottom: 6 }}>
+                        Node Voltages
+                      </div>
+                      <table style={{ width: "100%", fontSize: 12, fontFamily: mono, borderCollapse: "collapse" }}>
+                        <tbody>
+                          {Object.entries(importSimResult.nodeVoltages).map(([k, v]) => (
+                            <tr key={k} style={{ borderBottom: `1px solid ${col.border}` }}>
+                              <td style={{ padding: "4px 0", color: col.dim }}>{k}</td>
+                              <td style={{ padding: "4px 0", textAlign: "right", color: "#8FE3B0" }}>
+                                {Number(v).toFixed(4)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {importSimResult && importSimResult.type !== "op" && importSimResult.x && (
+                    <div style={{ marginTop: 14 }}>
+                      <div style={{ fontSize: 11, color: col.dim, textTransform: "uppercase", marginBottom: 6 }}>
+                        Waveform
+                      </div>
+                      <WaveformPlot x={importSimResult.x} series={importSimResult.series} />
+                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        {importSimResult.series.map((s, i) => (
+                          <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: col.dim }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 99, background: PLOT_COLORS[i % PLOT_COLORS.length] }} />
+                            {s.name}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           )}
 
           {rightTab === "simulate" && (
